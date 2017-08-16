@@ -1,5 +1,5 @@
 # SweetloveGroup
-This is a set of miscellaneous function written in Prof. Sweetlove's group.
+This is a set of miscellaneous functions written in Prof. Sweetlove's group.
 
 Linux installation:
 1) Download the master file
