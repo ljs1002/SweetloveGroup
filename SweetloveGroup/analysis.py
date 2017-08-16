@@ -9,6 +9,9 @@ def netMetaboliteStoich(cobra_model,rxnlist):
   netMet = dict()
   for rxn in rxnlist:
     rxn = cobra_model.reactions.get_by_id(rxn)
+    if round(rxn.x,6)==0:
+      print rxn.id+" flux is 0."
+      break
     for met in rxn.metabolites:
       if netMet.keys().__contains__(met.id):
         netMet[met.id]=netMet[met.id]+((rxn.x/abs(rxn.x))*rxn.metabolites.get(met))
