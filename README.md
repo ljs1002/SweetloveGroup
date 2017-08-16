@@ -1,2 +1,2 @@
 # SweetloveGroup
-Miscelaneous functions used in Prof. Sweetlove's group
+Miscellaneous functions used in Prof. Sweetlove's group
