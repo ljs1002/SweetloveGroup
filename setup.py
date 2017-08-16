@@ -7,5 +7,5 @@ setup(name='SweetloveGroup',
       author='Sanu Shameer',
       author_email='sanushameer@gmail.com',
       url='https://github.com/sshameer/SweetloveGroup/',
-      packages=[../SweetloveGroup],
+      packages=['../SweetloveGroup'],
      )
