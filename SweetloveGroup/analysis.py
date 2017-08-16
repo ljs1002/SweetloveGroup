@@ -7,7 +7,7 @@
 #output: a dictionay file with metabolite ids as key and net soichiometry as value
 def netMetaboliteStoich(cobra_model,rxnlist):
   netMet = dict()
-  for rxn in a:
+  for rxn in rxnlist:
     rxn = cobra_mode.reactions.get_by_id(rxn)
     for met in rxn.metabolites:
       if netMet.keys().__contains__(met.id):
