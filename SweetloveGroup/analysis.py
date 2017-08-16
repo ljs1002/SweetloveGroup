@@ -8,7 +8,7 @@
 def netMetaboliteStoich(cobra_model,rxnlist):
   netMet = dict()
   for rxn in rxnlist:
-    rxn = cobra_mode.reactions.get_by_id(rxn)
+    rxn = cobra_model.reactions.get_by_id(rxn)
     for met in rxn.metabolites:
       if netMet.keys().__contains__(met.id):
         netMet[met.id]=netMet[met.id]+((rxn.x/abs(rxn.x))*rxn.metabolites.get(met))
