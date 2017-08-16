@@ -8,10 +8,41 @@
 def netMetaboliteStoich(cobra_model,rxnlist):
   netMet = dict()
   for rxn in a:
-    rxn = cobra_model.reactions.get_by_id(rxn)
+    rxn = cobra_mode.reactions.get_by_id(rxn)
     for met in rxn.metabolites:
       if netMet.keys().__contains__(met.id):
         netMet[met.id]=netMet[met.id]+((rxn.x/abs(rxn.x))*rxn.metabolites.get(met))
       else:
         netMet[met.id]=((rxn.x/abs(rxn.x))*rxn.metabolites.get(met))
   return netMet
+
+
+#Function to print out all reactions generating/consuming a metabolite of inter-
+#est 
+#args: 1) a solved cobra model 2) metabolite ID 3) ID of alternate charged state
+#(use "" if none) 4) output file 
+#output: none
+def writeMetabSummary(cobra_model, met, Amet, outfile):
+  met=cobra_model.metabolites.get_by_id(met)
+  if not Amet == "":
+    Amet=cobra_model.metabolites.get_by_id(Amet)
+  if not outfile=="":
+    fout = open(outfile,"w")
+    fout.write("rxn ID\treaction\tmetabolite flux")
+  for rxn in met.reactions:
+    sto=rxn.metabolites.get(met)
+    if Amet=="":
+      sto1=0
+    else:
+      sto1=rxn.metabolites.get(met1)
+    if outfile=="":
+      print  rxn.id+"\t"+rxn.reaction+"\t"+str(rxn.x*(sto+sto1))
+    else:
+      fout.write(rxn.id+"\t"+rxn.reaction+"\t"+str(rxn.x*(sto+sto1))+"\n")
+  if not outfile=="":
+    fout.close()
+      
+      
+
+
+  
