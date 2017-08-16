@@ -20,7 +20,7 @@ def netMetaboliteStoich(cobra_model,rxnlist):
 #Function to print out all reactions generating/consuming a metabolite of inter-
 #est 
 #args: 1) a solved cobra model 2) metabolite ID 3) ID of alternate charged state
-#(use "" if none) 4) output file 
+#(use "" if none) 4) output file (use "" if no output file is required)
 #output: none
 def writeMetabSummary(cobra_model, met, Amet, outfile):
   met=cobra_model.metabolites.get_by_id(met)
