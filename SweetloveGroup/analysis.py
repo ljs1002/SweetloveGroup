@@ -32,7 +32,7 @@ def writeMetabSummary(cobra_model, met, Amet, outfile):
     Amet=cobra_model.metabolites.get_by_id(Amet)
   if not outfile=="":
     fout = open(outfile,"w")
-    fout.write("rxn ID\treaction\tmetabolite flux")
+    fout.write("rxn ID\treaction\tmetabolite flux\n")
   for rxn in met.reactions:
     sto=rxn.metabolites.get(met)
     if Amet=="":
