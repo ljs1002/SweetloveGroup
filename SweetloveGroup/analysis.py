@@ -38,7 +38,7 @@ def writeMetabSummary(cobra_model, met, Amet, outfile):
     if Amet=="":
       sto1=0
     else:
-      sto1=rxn.metabolites.get(met1)
+      sto1=rxn.metabolites.get(Amet)
     if outfile=="":
       print  rxn.id+"\t"+rxn.reaction+"\t"+str(rxn.x*(sto+sto1))
     else:
