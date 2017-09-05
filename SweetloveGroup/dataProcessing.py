@@ -9,9 +9,6 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
   import numpy as np
   
   
-  
-  ################################Main function####################################
-  
   #import data
   df = pd.read_csv(datafile,sep="\t")
   Rsampling = 1000
