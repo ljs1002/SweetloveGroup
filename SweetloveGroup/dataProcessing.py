@@ -1,8 +1,3 @@
-#################################################################################
-#These functions are used to process biological data
-#Author: Sanu Shameer 					PI: Lee J. Sweetlove	#
-#email: sanushameer@gmail.com				Last updated: 05/09/2017#
-#################################################################################
 
 #This function processes raw biomass data and returns upper and lower bounds to 
 #be used in constraint scanning as done by Colombie et al 2015
