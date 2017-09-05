@@ -15,7 +15,9 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
   
   
   
-    #import data
+  ################################Main function####################################
+  
+  #import data
   df = pd.read_csv(datafile,sep="\t")
   Rsampling = 1000
   num2rem = int(0.025*Rsampling)
@@ -116,7 +118,7 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
   ax.plot(x2,maxy1,"r--",label="fitted curve with max. y")
   ax.plot(x2,miny1,"b--",label="fitted curve with min. y")
   plt.xlabel("Time(days)")
-  plt.ylabel("Concentration")
+  plt.ylabel("Concentration (micromol/fruit)")
   plt.legend(loc="best",fontsize=15)
   plt.show()
   
@@ -189,7 +191,7 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
   ax.plot(x2,maxy95_2,"r--",label="derivative of fitted curve with max. y 95%")
   ax.plot(x2,miny95_2,"b--",label="derivative of fitted curve with min. y 95%")
   plt.xlabel("Time(days)")
-  plt.ylabel("Flux")
+  plt.ylabel("Flux (micromol/fruit/day)")
   plt.legend(loc="best",fontsize=15)
   plt.show()
   
