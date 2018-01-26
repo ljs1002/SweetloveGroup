@@ -101,19 +101,19 @@ def predictCCE(C3_model,accumulation_tag="dielTransfer",output="Phloem_output_tx
 #This function generates a tab seperated file that can be used with#
 #Cytoscape to visualize metabolic flux                             #
 #                                                                  #
-#inputs: 1) a cobra model with feasible solution 2) the number of  #
-#cells in the model (eg: 2 for diel C3 and 4 for diel C4) 3) the   #
-#name of the output file                                           #
+#inputs: 1) a cobra model with feasible solution 2) the name of the#
+#output file  3)  the number of cells in the model (eg: 2 for diel #
+#C3 and 4 for diel C4)                                             #
 #                                                                  #
 ####################################################################
 
-def generateFluxMap(cobra_model,phases = 2, outfile)
+def generateFluxMap(cobra_model, outfile,phases = 2)
     import cobra
     solution = cobra.flux_analysis.parsimonious.optimize_minimal_flux(cobra_model)
     #solution = cobra.flux_analysis.parsimonious.pfba(cobra_model)          #If the previous line returns error comment it out and uncomment this line instead
 
     #open output file for writing
-    f = open(outfile);
+    f = open(outfile,"w");
 
     #use rxnSet to identify reaction that have already been processed
     rxnSet = set()
