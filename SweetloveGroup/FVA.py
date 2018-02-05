@@ -7,7 +7,7 @@
 #ue
 #args: 1) a cobra model
 #output: a cobra model with FVA as an attribute called fva
-def FBA_FVA_run(cobra_model):
+def FBA_FVA_run(cobra_model,legacy=False):
   objvalue = cobra_model.solution.f
   a = 0
   for i in solution.x_dict.keys():
@@ -21,7 +21,18 @@ def FBA_FVA_run(cobra_model):
   sfmodel.optimize()
   
   fva = flux_analysis.flux_variability_analysis(sfmodel)
-  
+  if legacy == False:
+    tempDict = dict()
+    for maxmin in fva.keys():
+      for rxn in sfmodel.reactions:
+        if tempDict.keys().__contains__(rxn.id):
+          tempDict2 = tempDict.get(rxn.id)
+        else:
+          tempDict2 = dict()
+        tempDict2[maxmin]=fva.loc[rxn.id,maxmin]
+        tempDict[rxn.id]=tempDict2
+  fva = tempDict
+    
   FVArxnSet = set()
   tempdict=dict()
   for rxn in fva.keys():
