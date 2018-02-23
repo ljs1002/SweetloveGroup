@@ -107,7 +107,7 @@ def predictCCE(C3_model,accumulation_tag="dielTransfer",output="Phloem_output_tx
 #                                                                  #
 ####################################################################
 
-def generateFluxMap(cobra_model, outfile,phases = 2)
+def generateFluxMap(cobra_model, outfile,phases = 2):
     import cobra
     solution = cobra.flux_analysis.parsimonious.optimize_minimal_flux(cobra_model)
     #solution = cobra.flux_analysis.parsimonious.pfba(cobra_model)          #If the previous line returns error comment it out and uncomment this line instead
