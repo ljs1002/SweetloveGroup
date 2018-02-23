@@ -175,7 +175,7 @@ def generateFluxMap(cobra_model, outfile,phases = 2):
             for reac in rxn.reactants:
                 REAC=reac.id
                 if(REAC.__contains__("1")):
-                    if(REAC.rindex("1")==len(REAC)-1) or (REAC.rindex("2")==len(REAC)-1):
+                    if(REAC.rindex("1")==len(REAC)-1):
                         REAC=REAC[0:len(REAC)-1]
                     f.write("R_"+RXN+" (reaction-reactant) M_"+REAC)
                     for i in range(1,phases+1):
@@ -189,7 +189,7 @@ def generateFluxMap(cobra_model, outfile,phases = 2):
             for prod in rxn.products:
                 PROD=prod.id
                 if(PROD.__contains__("1")):
-                    if(PROD.rindex("1")==len(PROD)-1) or (PROD.rindex("2")==len(PROD)-1):
+                    if(PROD.rindex("1")==len(PROD)-1):
                         PROD=PROD[0:len(PROD)-1]
                 f.write("R_"+RXN+" (reaction-product) M_"+PROD)
                 for i in range(1,phases+1):
