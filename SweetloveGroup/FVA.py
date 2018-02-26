@@ -7,32 +7,39 @@
 #ue
 #args: 1) a cobra model
 #output: a cobra model with FVA as an attribute called fva
-def FBA_FVA_run(cobra_model,legacy=False):
-  objvalue = cobra_model.solution.f
+
+#Function to perform FVA analysis which maintains sum of fluxes at a minimal val-
+#ue
+#args: 1) a cobra model 2) Objective 3) reaction to avoid when constraining sum 
+#of fluxes 4) reaction list for FVA
+#output: a cobra model with FVA as an attribute called fva
+def FBA_FVA_run(cobra_model,obj,rxn2avoid = [],rxnlist=[]):
+  if len(rxnlist)==0:
+    rxnlist = cobra_model.reactions
+  print("Rxn list ="+str(rxnlist))
+  print("Runing pFBA")
+  flux_analysis.parsimonious.optimize_minimal_flux(cobra_model,solver="cplex")
+  objvalue = obj.x
   a = 0
-  for i in solution.x_dict.keys():
-    a = a + abs(solution.x_dict.get(i))
+  for i in cobra_model.reactions:
+    a = a + abs(i.x)
   
   sumOfFluxes = a
   
   cobra_model2 = cobra_model.copy()
   irr_model = rev2irrev(cobra_model2)
-  sfmodel = constrainSumOfFluxes(irr_model,[],sumOfFluxes,objvalue)
-  sfmodel.optimize()
-  
-  fva = flux_analysis.flux_variability_analysis(sfmodel)
-  if legacy == False:
-    tempDict = dict()
-    for maxmin in fva.keys():
-      for rxn in sfmodel.reactions:
-        if tempDict.keys().__contains__(rxn.id):
-          tempDict2 = tempDict.get(rxn.id)
-        else:
-          tempDict2 = dict()
-        tempDict2[maxmin]=fva.loc[rxn.id,maxmin]
-        tempDict[rxn.id]=tempDict2
-  fva = tempDict
-    
+  print("Setting SOF model")
+  sfmodel = constrainSumOfFluxes(irr_model,rxn2avoid,sumOfFluxes,obj)
+  rxnlist2 = list()
+  for rxn in rxnlist:
+    if rxn.lower_bound<0 and rxn.upper_bound>0:
+      rxnlist2.append(sfmodel.reactions.get_by_id(rxn.id+"_reverse"))
+    rxnlist2.append(sfmodel.reactions.get_by_id(rxn.id))
+  print("Rxn list ="+str(rxnlist2))
+  print("Running FVA")
+  fva = flux_analysis.flux_variability_analysis(sfmodel,reaction_list = rxnlist2,solver="cplex")
+  print("Processing results")
+  print("FVA ="+str(fva))
   FVArxnSet = set()
   tempdict=dict()
   for rxn in fva.keys():
@@ -45,8 +52,8 @@ def FBA_FVA_run(cobra_model,legacy=False):
       tempdict[rxn]=fva.get(rxn)
       continue
     FVArxnSet.add(rxn+"_reverse")
-    maxi = fva.get(rxn).get("maximum") + fva.get(rxn+"_reverse").get("minimum")
-    mini = fva.get(rxn).get("minimum") + fva.get(rxn+"_reverse").get("maximum")
+    maxi = fva.get(rxn).get("maximum")# + fva.get(rxn+"_reverse").get("minimum")
+    mini = fva.get(rxn+"_reverse").get("minimum")# + fva.get(rxn).get("maximum")
     if mini<maxi:
       tempdict[rxn]={"minimum":mini,"maximum":maxi}
     else:
