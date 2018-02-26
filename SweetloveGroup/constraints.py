@@ -34,6 +34,8 @@ def setCCE(C3_model,CCE = 0.5,tag = "dielTransfer"):
 #ective function)
 #output: a cobra model with sum of fluxes constrained to 
 def constrainSumOfFluxes(cobra_model, rxn2avoid,SFvalue,objvalue):
+  from cobra.core import Metabolite
+  
   temp=cobra_model.copy()
   SFMet = Metabolite("SFMet",name="Sum of fluxes pseudometabolite",compartment="c2")
   for rxn in cobra_model.reactions:
