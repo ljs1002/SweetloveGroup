@@ -4,8 +4,6 @@
 #of fluxes 4) reaction list for FVA
 #output: a cobra model with FVA as an attribute called fva
 def FBA_FVA_run(cobra_model,obj,rxn2avoid = [],rxnlist=[]):
-  from cobra.core import Metabolite, Reaction
-  
   if len(rxnlist)==0:
     rxnlist = cobra_model.reactions
   print("Rxn list ="+str(rxnlist))
