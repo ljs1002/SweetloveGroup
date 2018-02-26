@@ -1,13 +1,3 @@
-
-#Function to perform FVA analysis which maintains sum of fluxes at a minimal val-
-#ue
-#args: 1) a cobra model
-#output: a cobra model with FVA as an attribute called fva
-#Function to perform FVA analysis which maintains sum of fluxes at a minimal val-
-#ue
-#args: 1) a cobra model
-#output: a cobra model with FVA as an attribute called fva
-
 #Function to perform FVA analysis which maintains sum of fluxes at a minimal val-
 #ue
 #args: 1) a cobra model 2) Objective 3) reaction to avoid when constraining sum 
