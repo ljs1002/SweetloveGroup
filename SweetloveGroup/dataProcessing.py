@@ -187,4 +187,40 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
   plt.legend(loc="best",fontsize=15)
   plt.show()
   
-  
+###################################################################
+#This function removes gene and protein associations from a given #
+#sbml file.                                                       #
+###################################################################
+def removeGeneProteinAssociations(orignal_sbml_file,final_sbml_file):
+  fin =open(orignal_sbml_file)
+  fout = open(final_sbml_file,"w")
+  ignore=False
+  Type=""
+  reset_ignore_gene=False
+  reset_ignore_protein=False
+  for line in fin:
+    if line.__contains__("<html:p>GENE_ASSOCIATION:") and not line.__contains__("<html:p>GENE_ASSOCIATION: </html:p>"):
+      ignore=True
+      Type="gene"
+    if line.__contains__("<html:p>PROTEIN_ASSOCIATION:") and not line.__contains__("<html:p>PROTEIN_ASSOCIATION: </html:p>"):
+      ignore=True
+      Type="protein"
+    if ignore and line.__contains__("</html:p>"):
+      if Type=="gene":
+        reset_ignore_gene = True
+      elif Type == "protein":
+        reset_ignore_protein=True
+    if not ignore: 
+      #print line
+      fout.write(line)
+    if reset_ignore_gene:
+      fout.write("      <html:p>GENE_ASSOCIATION: </html:p>\n")
+      ignore=False
+      Type=""
+      reset_ignore_gene = False
+    if reset_ignore_protein:
+      fout.write("      <html:p>PROTEIN_ASSOCIATION: </html:p>\n")
+      ignore=False
+      Type=""
+      reset_ignore_protein = False  
+  fout.close()
