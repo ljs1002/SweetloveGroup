@@ -233,5 +233,36 @@ def generateFluxMap(cobra_model, outfile,phases = 2):
 
 
 
-
+####################################################
+# This function estimates Rubisco carboxylase flux #
+# at which the net CO2 uptake rate is equal to the #
+# user defined value                               #
+####################################################
+def estimateVcFromNetCO2(model,netCO2uptake,Vc_ID="RIBULOSE_BISPHOSPHATE_CARBOXYLASE_RXN_p1",CO2in_ID="CO2_tx1",verbose=False):
+    
+    # Initally constraint Vc flux to net CO2 uptake rate
+    model.reactions.get_by_id(Vc_ID).lower_bound = netCO2uptake
+    model.reactions.get_by_id(Vc_ID).upper_bound = netCO2uptake
+    
+    #perform pFBA
+    flux_analysis.parsimonious.optimize_minimal_flux(model)
+    
+    #set loop counter
+    i=0
+    
+    #Use a while loop to increase Vc flux until net CO2 rate is similar to given value (or loop counter hits 10)
+    while((netCO2uptake - model.reactions.get_by_id(CO2in_ID).x)/netCO2uptake > 0.001 and i<10):
+        i=i+1
+        prev = model.reactions.get_by_id(Vc_ID).x
+        # Increment in Vc flux is set by given netCo2 uptake - model predicted CO2 uptake rate in previous pFBA run
+        now = prev + ((netCO2uptake - model.reactions.get_by_id(CO2in_ID).x))
+        model.reactions.get_by_id(Vc_ID).lower_bound = now
+        model.reactions.get_by_id(Vc_ID).upper_bound = now
+        flux_analysis.parsimonious.optimize_minimal_flux(model)
+        if verbose:
+            print("----"+str(i)+"----")
+            print("Vc flux ="+str(now))
+            print("net CO2 uptake ="+str(model.reactions.get_by_id(CO2in_ID).x))
+            print("Target CO2 uptake ="+str(netCO2uptake))
+    return prev
   
