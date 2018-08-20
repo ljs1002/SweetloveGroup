@@ -266,3 +266,34 @@ def estimateVcFromNetCO2(model,netCO2uptake,Vc_ID="RIBULOSE_BISPHOSPHATE_CARBOXY
             print("Target CO2 uptake ="+str(netCO2uptake))
     return prev
   
+
+  
+#####################################################################
+# This function prints information on CO2 generating fluxes and can #
+# be used to study dark respiration                                 #
+# inputs: 1) an FBA solved model, 2) a list of fluxs to ignore, 3)  #
+# the tag used to mark night time metabolites ex: "_night", 4)      #
+# a list of solution objects                                        #
+#####################################################################
+def printDarkRespirationFluxes(model,rxn2avoid=["CO2_tx1","CO2_ec1","CO2_mc1","CO2_pc1","GCVMULTI_RXN_m1"],night_tag = "2",custom_solutions=[]):
+  for met in model.metabolites.query("CARBON_DIOXIDE"):
+    if met.id.__contains__(night_tag):
+      continue
+    for rxn in met.reactions:
+      if rxn2avoid.__contains__(rxn.id):
+        continue
+      if len(custom_solutions) == 0:
+        if (rxn.metabolites.get(met) > 0 and rxn.x > 0) or (rxn.metabolites.get(met) < 0 and rxn.x < 0):
+          print rxn.id+"\t"+rxn.reaction+"\t"+str(rxn.x*rxn.metabolites.get(met))
+        else:
+          if (rxn.metabolites.get(met) > 0 and rxn.upper_bound > 0) or (rxn.metabolites.get(met) < 0 and rxn.lower_bound < 0):
+            tot=0
+            for sol in custom_solutions:
+              tot=tot+abs(sol.x_dict.get(rxn.id))
+              if tot==0:
+                continue
+            
+            print rxn.id+"\t"+rxn.reaction,
+            for sol in custom_solutions:
+              print "\t"+str(rxn.metabolites.get(met)*sol.x_dict.get(rxn.id)),
+            print ""
