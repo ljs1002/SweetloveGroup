@@ -13,5 +13,8 @@ setup(name='SweetloveGroup',
       url='https://github.com/sshameer/SweetloveGroup/',
       py_modules=[dir_path+'/FVA',dir_path+'/FBA'],
       license='GNU v3',
-      packages=[dir_path],
+      packages=['SweetloveGroup'],
+      install_requires=[
+	      'cobra',
+	      ]
      )

@@ -49,8 +49,8 @@ def constrainSumOfFluxes(cobra_model, rxn2avoid,SFvalue,objvalue):
   SFRxn.lower_bound=SFvalue
   SFRxn.upper_bound=SFvalue
   temp.add_reaction(SFRxn)
-  if (not objvalue=="") and (len(temp.objective) == 1):
-    for rxn in temp.objective.keys():
-      rxn.lower_bound=objvalue
-      rxn.upper_bound=objvalue
+  if (not objvalue=="") and (len([rxn for rxn in temp.reactions if rxn.objective_coefficient==1]) == 1):
+    for rxn in [rxn for rxn in temp.reactions if rxn.objective_coefficient==1]:
+      rxn.lower_bound=float(objvalue)
+      rxn.upper_bound=float(objvalue)
   return temp

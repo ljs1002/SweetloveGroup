@@ -103,7 +103,6 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
   
   if show_plots:
     import matplotlib.pyplot as plt
-    %matplotlib inline
     plt.rcParams.update({'font.size': 20}) #sets a global fontsize
     plt.rcParams['xtick.major.size'] = 5 # adjusts tick line length and width
     plt.rcParams['xtick.major.width'] = 1
@@ -175,8 +174,6 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
   
   if show_plots:
     import matplotlib.pyplot as plt
-    
-    %matplotlib inline
     plt.rcParams.update({'font.size': 20}) #sets a global fontsize
     plt.rcParams['xtick.major.size'] = 5 # adjusts tick line length and width
     plt.rcParams['xtick.major.width'] = 1

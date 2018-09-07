@@ -11,30 +11,34 @@ def FBA_FVA_run(cobra_model,obj,rxn2avoid = [],rxnlist=[]):
   
   if len(rxnlist)==0:
     rxnlist = cobra_model.reactions
-  print("Rxn list ="+str(rxnlist))
+  #print("Rxn list ="+str(rxnlist))
   print("Runing pFBA")
-  flux_analysis.parsimonious.optimize_minimal_flux(cobra_model,solver="cplex")
-  objvalue = obj.x
+  solution = flux_analysis.parsimonious.pfba(cobra_model)
+  objvalue = solution.x_dict.get(obj.id)
   a = 0
   for i in cobra_model.reactions:
-    a = a + abs(i.x)
+    a = a + abs(solution.x_dict.get(i.id))
   
   sumOfFluxes = a
   
   cobra_model2 = cobra_model.copy()
   irr_model = rev2irrev(cobra_model2)
   print("Setting SOF model")
-  sfmodel = constrainSumOfFluxes(irr_model,rxn2avoid,sumOfFluxes,obj)
+  sfmodel = constrainSumOfFluxes(irr_model,rxn2avoid,sumOfFluxes,objvalue)
   rxnlist2 = list()
-  for rxn in rxnlist:
-    if rxn.lower_bound<0 and rxn.upper_bound>0:
-      rxnlist2.append(sfmodel.reactions.get_by_id(rxn.id+"_reverse"))
-    rxnlist2.append(sfmodel.reactions.get_by_id(rxn.id))
-  print("Rxn list ="+str(rxnlist2))
+  if rxnlist == cobra_model.reactions:
+    rxnlist2 = sfmodel.reactions
+  else:
+    for rxn in rxnlist:
+      if rxn.lower_bound<0 and rxn.upper_bound>0:
+        rxnlist2.append(sfmodel.reactions.get_by_id(rxn.id+"_reverse"))
+      rxnlist2.append(sfmodel.reactions.get_by_id(rxn.id))
+  #print("Rxn list ="+str(rxnlist2))
   print("Running FVA")
-  fva = flux_analysis.flux_variability_analysis(sfmodel,reaction_list = rxnlist2,solver="cplex")
+  sfmodel.solver="cplex"
+  fva = flux_analysis.flux_variability_analysis(sfmodel,reaction_list = rxnlist2)
   print("Processing results")
-  print("FVA ="+str(fva))
+  #print("FVA ="+str(fva))
   FVArxnSet = set()
   tempdict=dict()
   for rxn in fva.keys():
