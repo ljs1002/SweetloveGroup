@@ -340,3 +340,94 @@ def printDarkRespirationFluxes(model,rxn2avoid=["CO2_tx1","CO2_ec1","CO2_mc1","C
             for sol in custom_solutions:
               print "\t"+str(rxn.metabolites.get(met)*sol.x_dict.get(rxn.id)),
             print ""
+
+#####################################################################
+# This function generates ATP budgets for a given flux distribution #
+# inputs: 1) an FBA model, 2) a dictionary object with reaction ids #
+# as keys and reaction fluxes as values, 3) name of output file (op-#
+# -tional), 4) Option to show plots, 5) If choosing to show plot, c-#
+# -hoose wether to use percentage or absolute values in the plot.   #
+#####################################################################
+def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False):
+  if outfile!="":
+    fout = open(outfile,"w")
+  ATPdict = dict()
+  total = 0
+  for p in ("c","p","m","x"):
+    met=model.metabolites.get_by_id("ATP_"+p+"1")
+    met1=model.metabolites.get_by_id("aATP_"+p+"1")
+    for rxn in met.reactions:
+      if rxn.id.__contains__("ATP_AMP_mc") or rxn.id.__contains__("ATP_ADP_mc") or rxn.id.__contains__("ATP_pc") or rxn.id.__contains__("AMP_ATP_xc") or rxn.id.__contains__("ATP_ADP_Pi_pc"): 
+        continue
+      sto=rxn.metabolites.get(met)
+      sto1=rxn.metabolites.get(met1)
+      if outfile!="":
+        fout.write(rxn.id+"\t"+rxn.reaction+"\t"+str(solution.get(rxn.id)*(sto+sto1))+"\t"+met.compartment+"\n")
+      ATPdict[rxn.id]=solution.get(rxn.id)*(sto+sto1)
+      if solution.get(rxn.id)*(sto+sto1) > 0:
+        total = total + (solution.get(rxn.id)*(sto+sto1))
+  if outfile!="":
+    fout.close()
+  
+  ATPdict2 = dict()
+  ATPdict2["Others-pos"]=0
+  ATPdict2["Others-neg"]=0
+  baseline = dict()
+  pos_base=0
+  neg_base=0
+  i=0
+  for rxn in ATPdict.keys():
+    if ATPdict[rxn]>0:
+      if ATPdict[rxn] < total*0.05:
+        if percentage:
+          ATPdict2["Others-pos"]=ATPdict2["Others-pos"]+float(ATPdict[rxn]*100)/total
+        else:
+          ATPdict2["Others-pos"]=ATPdict2["Others-pos"]+ATPdict[rxn]
+        continue
+      base = pos_base
+      if percentage:
+        ATPdict2[rxn]=float(ATPdict[rxn]*100)/total
+        pos_base = pos_base + float(ATPdict[rxn]*100)/total
+      else:
+        pos_base = pos_base + ATPdict[rxn]
+        ATPdict2[rxn]=ATPdict[rxn]
+    else:
+      if abs(ATPdict[rxn]) < total*0.05:
+        if percentage:
+          ATPdict2["Others-neg"]=ATPdict2["Others-neg"]+float(ATPdict[rxn]*100)/total
+        else:
+          ATPdict2["Others-neg"]=ATPdict2["Others-neg"]+ATPdict[rxn]
+        continue
+      base = neg_base
+      if percentage:
+        ATPdict2[rxn]=float(ATPdict[rxn]*100)/total
+        neg_base = neg_base + float(ATPdict[rxn]*100)/total
+      else:
+        neg_base = neg_base + ATPdict[rxn]
+        ATPdict2[rxn]=ATPdict[rxn]
+    i=i+1
+    baseline[rxn]=base
+  baseline["Others-pos"]=pos_base
+  baseline["Others-neg"]=neg_base
+  
+  if show_plot:
+    import matplotlib.pyplot as plt
+    plt.rcParams.update({'font.size': 10}) #sets a global fontsize
+    plt.rcParams['xtick.major.size'] = 5 # adjusts tick line length and width
+    plt.rcParams['xtick.major.width'] = 1
+    plt.rcParams['ytick.major.size'] = 5
+    plt.rcParams['ytick.major.width'] = 1
+    plt.rcParams['axes.linewidth']=2 # makes axes line thicker
+    plt.figure(figsize=(3,4))
+    for rxn in ATPdict2.keys():
+      plt.bar(1,ATPdict2[rxn],width=0.1,bottom=baseline[rxn],label=rxn)
+    plt.axhline(0,linestyle="--",color="black")
+    plt.xlim(0.8,1.2)
+    if percentage:
+      plt.ylabel("ATP produced/consumed (%)")
+    else:
+      plt.ylabel("ATP produced/consumed (in moles)")
+    lgd=plt.legend(bbox_to_anchor=(1,1))
+    plt.tight_layout
+    plt.savefig('temp.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+ 
