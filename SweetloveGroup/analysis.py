@@ -421,13 +421,16 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False)
     plt.figure(figsize=(3,4))
     for rxn in ATPdict2.keys():
       plt.bar(1,ATPdict2[rxn],width=0.1,bottom=baseline[rxn],label=rxn)
-    plt.axhline(0,linestyle="--",color="black")
     plt.xlim(0.8,1.2)
     if percentage:
       plt.ylabel("ATP produced/consumed (%)")
     else:
       plt.ylabel("ATP produced/consumed (in moles)")
+    handles, labels = plt.gca().get_legend_handles_labels()
+    labels2=list(set(labels)-set(["Others-neg","Others-pos"]))+list(["Others-neg","Others-pos"])
+    handles2=[handles[labels.index(i)] for i in labels2]
     lgd=plt.legend(bbox_to_anchor=(1,1))
+    plt.axhline(0,linestyle="--",color="black")
     plt.tight_layout
     plt.savefig('temp.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
  
