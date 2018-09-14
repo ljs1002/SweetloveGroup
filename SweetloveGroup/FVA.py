@@ -38,28 +38,40 @@ def FBA_FVA_run(cobra_model,obj,rxn2avoid = [],rxnlist=[]):
   sfmodel.solver="cplex"
   fva = flux_analysis.flux_variability_analysis(sfmodel,reaction_list = rxnlist2)
   print("Processing results")
-  #print("FVA ="+str(fva))
-  FVArxnSet = set()
-  tempdict=dict()
-  for rxn in fva.keys():
-    if FVArxnSet.__contains__(rxn):
-      continue
-    if rxn.__contains__("reverse"):
-      rxn = rxn.replace("_reverse","")
-    FVArxnSet.add(rxn)
-    if not fva.keys().__contains__(rxn+"_reverse"):
-      tempdict[rxn]=fva.get(rxn)
-      continue
-    FVArxnSet.add(rxn+"_reverse")
-    maxi = fva.get(rxn).get("maximum")# + fva.get(rxn+"_reverse").get("minimum")
-    mini = fva.get(rxn+"_reverse").get("minimum")# + fva.get(rxn).get("maximum")
-    if mini<maxi:
-      tempdict[rxn]={"minimum":mini,"maximum":maxi}
+  print("FVA ="+str(fva))
+  
+  fva2=dict()
+  for mode in fva.keys():
+    if mode == "maximum":
+      tempdict = dict()
+      FVArxnSet = set()
+      for rxn in fva[mode].keys():
+        if rxn.__contains__("_reverse"):
+          rxn = rxn.replace("_reverse","")
+        if FVArxnSet.__contains__(rxn):
+          continue
+        FVArxnSet.add(rxn)
+        if not fva[mode].keys().__contains__(rxn+"_reverse"):
+          maxi = fva[mode][rxn]
+        else:
+          maxi = fva[mode][rxn]+fva[mode][rxn+"_reverse"]
+        tempdict[rxn]=maxi
     else:
-      tempdict[rxn]={"minimum":maxi,"maximum":mini}
+      tempdict=dict()
+      FVArxnSet = set()
+      for rxn in fva[mode].keys():
+        if rxn.__contains__("_reverse"):
+          rxn = rxn.replace("_reverse","")
+        if FVArxnSet.__contains__(rxn):
+          continue
+        FVArxnSet.add(rxn)
+        if not fva[mode].keys().__contains__(rxn+"_reverse"):
+          mini = fva[mode][rxn]
+        else:
+          mini = fva[mode][rxn]+fva[mode][rxn+"_reverse"]
+        tempdict[rxn]=mini
+    fva2[mode]=tempdict
   
   sfmodel.fva = fva
-  cobra_model.fva = tempdict
+  cobra_model.fva = fva2
   return cobra_model
-
-
