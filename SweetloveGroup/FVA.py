@@ -38,7 +38,6 @@ def FBA_FVA_run(cobra_model,obj,rxn2avoid = [],rxnlist=[]):
   sfmodel.solver="cplex"
   fva = flux_analysis.flux_variability_analysis(sfmodel,reaction_list = rxnlist2)
   print("Processing results")
-  print("FVA ="+str(fva))
   
   fva2=dict()
   for mode in fva.keys():
