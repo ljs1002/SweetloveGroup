@@ -429,7 +429,7 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False)
     handles, labels = plt.gca().get_legend_handles_labels()
     labels2=list(set(labels)-set(["Others-neg","Others-pos"]))+list(["Others-neg","Others-pos"])
     handles2=[handles[labels.index(i)] for i in labels2]
-    lgd=plt.legend(bbox_to_anchor=(1,1))
+    lgd=plt.legend(handles2,labels2,bbox_to_anchor=(1,1))
     plt.axhline(0,linestyle="--",color="black")
     plt.tight_layout
     plt.savefig('temp.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
