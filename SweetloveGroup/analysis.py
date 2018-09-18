@@ -348,14 +348,14 @@ def printDarkRespirationFluxes(model,rxn2avoid=["CO2_tx1","CO2_ec1","CO2_mc1","C
 # -tional), 4) Option to show plots, 5) If choosing to show plot, c-#
 # -hoose wether to use percentage or absolute values in the plot.   #
 #####################################################################
-def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False):
+def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,day_or_night_tag="1",save_plot_to="temp.png"):
   if outfile!="":
     fout = open(outfile,"w")
   ATPdict = dict()
   total = 0
   for p in ("c","p","m","x"):
-    met=model.metabolites.get_by_id("ATP_"+p+"1")
-    met1=model.metabolites.get_by_id("aATP_"+p+"1")
+    met=model.metabolites.get_by_id("ATP_"+p+day_or_night_tag)
+    met1=model.metabolites.get_by_id("aATP_"+p+day_or_night_tag)
     for rxn in met.reactions:
       if rxn.id.__contains__("ATP_AMP_mc") or rxn.id.__contains__("ATP_ADP_mc") or rxn.id.__contains__("ATP_pc") or rxn.id.__contains__("AMP_ATP_xc") or rxn.id.__contains__("ATP_ADP_Pi_pc"): 
         continue
@@ -432,7 +432,7 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False)
     lgd=plt.legend(handles2,labels2,bbox_to_anchor=(1,1))
     plt.axhline(0,linestyle="--",color="black")
     plt.tight_layout
-    plt.savefig('temp.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+    plt.savefig(save_plot_to, bbox_extra_artists=(lgd,), bbox_inches='tight')
  
 
 #####################################################################
