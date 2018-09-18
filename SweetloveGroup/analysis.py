@@ -434,3 +434,100 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False)
     plt.tight_layout
     plt.savefig('temp.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
  
+
+#####################################################################
+# This function generates ATP budgets for a given flux distribution #
+# inputs: 1) an FBA model, 2) a dictionary object with reaction ids #
+# as keys and reaction fluxes as values, 3) name of output file (op-#
+# -tional), 4) Option to show plots, 5) If choosing to show plot, c-#
+# -hoose wether to use percentage or absolute values in the plot 6) #
+# Provide a day or night indicator tag to specify day or night NAD(-#
+# -P)H summary 7) a destination file to save plot to                #
+#####################################################################
+def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=False,day_or_night_tag="1",save_plot_to="temp"):
+    if outfile!="":
+        fout = open(outfile,"w")
+    Reddict = dict()
+    total = 0
+    for red in ["NADPH","NADH"]:
+        for p in ("c","p","m","x"):
+            if len(model.metabolites.query(red+"_"+p+day_or_night_tag))==0:
+                continue
+            met=model.metabolites.get_by_id(red+"_"+p+day_or_night_tag)
+            for rxn in met.reactions:
+                sto=rxn.metabolites.get(met)
+                sto1=0#rxn.metabolites.get(met1)
+                if outfile!="":
+                    fout.write(rxn.id+"\t"+rxn.reaction+"\t"+str(solution.get(rxn.id)*(sto+sto1))+"\t"+met.compartment+"\n")
+                Reddict[rxn.id]=solution.get(rxn.id)*(sto+sto1)
+                if solution.get(rxn.id)*(sto+sto1) > 0:
+                    total = total + (solution.get(rxn.id)*(sto+sto1))
+    if outfile!="":
+        fout.close()
+    
+    Reddict2 = dict()
+    Reddict2["Others-pos"]=0
+    Reddict2["Others-neg"]=0
+    baseline = dict()
+    pos_base=0
+    neg_base=0
+    i=0
+    for rxn in Reddict.keys():
+        if Reddict[rxn]>0:
+            if Reddict[rxn] < total*0.05:
+                if percentage:
+                    Reddict2["Others-pos"]=Reddict2["Others-pos"]+float(Reddict[rxn]*100)/total
+                else:
+                    Reddict2["Others-pos"]=Reddict2["Others-pos"]+Reddict[rxn]
+                continue
+            base = pos_base
+            if percentage:
+                Reddict2[rxn]=float(Reddict[rxn]*100)/total
+                pos_base = pos_base + float(Reddict[rxn]*100)/total
+            else:
+                pos_base = pos_base + Reddict[rxn]
+                Reddict2[rxn]=Reddict[rxn]
+        else:
+            if abs(Reddict[rxn]) < total*0.05:
+                if percentage:
+                    Reddict2["Others-neg"]=Reddict2["Others-neg"]+float(Reddict[rxn]*100)/total
+                else:
+                    Reddict2["Others-neg"]=Reddict2["Others-neg"]+Reddict[rxn]
+                continue
+            base = neg_base
+            if percentage:
+                Reddict2[rxn]=float(Reddict[rxn]*100)/total
+                neg_base = neg_base + float(Reddict[rxn]*100)/total
+            else:
+                neg_base = neg_base + Reddict[rxn]
+                Reddict2[rxn]=Reddict[rxn]
+        i=i+1
+        baseline[rxn]=base
+    baseline["Others-pos"]=pos_base
+    baseline["Others-neg"]=neg_base
+    
+    if show_plot:
+        import matplotlib.pyplot as plt
+        plt.rcParams.update({'font.size': 10}) #sets a global fontsize
+        plt.rcParams['xtick.major.size'] = 5 # adjusts tick line length and width
+        plt.rcParams['xtick.major.width'] = 1
+        plt.rcParams['ytick.major.size'] = 5
+        plt.rcParams['ytick.major.width'] = 1
+        plt.rcParams['axes.linewidth']=2 # makes axes line thicker
+        plt.figure(figsize=(3,4))
+        for rxn in Reddict2.keys():
+            plt.bar(1,Reddict2[rxn],width=0.1,bottom=baseline[rxn],label=rxn)
+        plt.xlim(0.8,1.2)
+        if percentage:
+            plt.ylabel("NAD(P)H produced/consumed (%)")
+        else:
+            plt.ylabel("NAD(P)H produced/consumed (in moles)")
+        handles, labels = plt.gca().get_legend_handles_labels()
+        labels2=list(set(labels)-set(["Others-neg","Others-pos"]))+list(["Others-neg","Others-pos"])
+        handles2=[handles[labels.index(i)] for i in labels2]
+        lgd=plt.legend(handles2,labels2,bbox_to_anchor=(1,1))
+        plt.axhline(0,linestyle="--",color="black")
+        plt.tight_layout
+        plt.savefig(save_plot_to, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        
+
