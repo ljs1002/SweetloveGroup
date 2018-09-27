@@ -1,9 +1,9 @@
 #Function to perform FVA analysis which maintains sum of fluxes at a minimal val-
 #ue
 #args: 1) a cobra model 2) Objective 3) reaction to avoid when constraining sum 
-#of fluxes 4) reaction list for FVA
+#of fluxes 4) reaction list for FVA 5) solver used to perform FVA
 #output: a cobra model with FVA as an attribute called fva
-def FBA_FVA_run(cobra_model,obj,rxn2avoid = [],rxnlist=[]):
+def FBA_FVA_run(cobra_model,obj,rxn2avoid = [],rxnlist=[],solver=""):
   from SweetloveGroup.transform import rev2irrev
   from SweetloveGroup.constraints import constrainSumOfFluxes
   from cobra import flux_analysis
@@ -35,7 +35,13 @@ def FBA_FVA_run(cobra_model,obj,rxn2avoid = [],rxnlist=[]):
       rxnlist2.append(sfmodel.reactions.get_by_id(rxn.id))
   #print("Rxn list ="+str(rxnlist2))
   print("Running FVA")
-  sfmodel.solver="cplex"
+  
+  if solver != "":
+    import optlang
+    if optlang.available_solvers.keys().__contains__(solver) and optlang.available_solvers[solver]:
+      sfmodel.solver=solver
+    else:
+      print("Requested solver "+solver+" not available, using current model solver...")
   fva = flux_analysis.flux_variability_analysis(sfmodel,reaction_list = rxnlist2)
   print("Processing results")
   
