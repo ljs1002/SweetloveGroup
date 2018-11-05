@@ -277,9 +277,11 @@ def estimateOutputFromNetCO2(model,netCO2uptake,Output_ID="diel_biomass",Vc_ID="
     
     from cobra import flux_analysis
     # Initally constraint Vc flux to net CO2 uptake rate
+    print model.reactions.get_by_id("Photon_tx1").upper_bound
+    print model.reactions.get_by_id("ATPase_tx1").upper_bound
     model.reactions.get_by_id(Vc_ID).lower_bound = netCO2uptake
     model.reactions.get_by_id(Vc_ID).upper_bound = netCO2uptake
-    
+    print model.reactions.get_by_id(Vc_ID).upper_bound
     #perform pFBA
     flux_analysis.parsimonious.pfba(model)
     
@@ -346,9 +348,12 @@ def printDarkRespirationFluxes(model,rxn2avoid=["CO2_tx1","CO2_ec1","CO2_mc1","C
 # inputs: 1) an FBA model, 2) a dictionary object with reaction ids #
 # as keys and reaction fluxes as values, 3) name of output file (op-#
 # -tional), 4) Option to show plots, 5) If choosing to show plot, c-#
-# -hoose wether to use percentage or absolute values in the plot.   #
+# -hoose wether to use percentage or absolute values in the plot. 6)#
+# Provide a day or night indicator tag to specify day or night ATP  #
+# summary 7) a destination file to save plot to 8) a dictionary to  #
+# specify colour for fluxes in plot                                 #
 #####################################################################
-def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,day_or_night_tag="1",save_plot_to="temp.png"):
+def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,day_or_night_tag="1",save_plot_to="temp.png",colourDict={}):
   if outfile!="":
     fout = open(outfile,"w")
   ATPdict = dict()
@@ -369,6 +374,14 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,
   if outfile!="":
     fout.close()
   
+  tempDict = dict()
+  for rxn in ATPdict.keys():
+    tempDict[rxn]=abs(ATPdict[rxn])
+  
+  #sort ATPdict by values
+  import operator
+  sorted_by_value = sorted(tempDict.items(), key= lambda x:x[1],reverse=True)
+    
   ATPdict2 = dict()
   ATPdict2["Others-pos"]=0
   ATPdict2["Others-neg"]=0
@@ -376,7 +389,8 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,
   pos_base=0
   neg_base=0
   i=0
-  for rxn in ATPdict.keys():
+  for TEMP in sorted_by_value:
+    rxn = TEMP[0]
     if ATPdict[rxn]>0:
       if ATPdict[rxn] < total*0.05:
         if percentage:
@@ -420,7 +434,10 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,
     plt.rcParams['axes.linewidth']=2 # makes axes line thicker
     plt.figure(figsize=(3,4))
     for rxn in ATPdict2.keys():
-      plt.bar(1,ATPdict2[rxn],width=0.1,bottom=baseline[rxn],label=rxn)
+      if colourDict.keys().__contains__(rxn):
+        plt.bar(1,ATPdict2[rxn],width=0.1,bottom=baseline[rxn],label=rxn,color=colourDict[rxn])
+      else:
+        plt.bar(1,ATPdict2[rxn],width=0.1,bottom=baseline[rxn],label=rxn)
     plt.xlim(0.8,1.2)
     if percentage:
       plt.ylabel("ATP produced/consumed (%)")
@@ -442,9 +459,10 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,
 # -tional), 4) Option to show plots, 5) If choosing to show plot, c-#
 # -hoose wether to use percentage or absolute values in the plot 6) #
 # Provide a day or night indicator tag to specify day or night NAD(-#
-# -P)H summary 7) a destination file to save plot to                #
+# -P)H summary 7) a destination file to save plot to 8) a dictionary#
+# to specify colour for fluxes in plot                              #
 #####################################################################
-def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=False,day_or_night_tag="1",save_plot_to="temp"):
+def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=False,day_or_night_tag="1",save_plot_to="temp",colourDict={}):
     if outfile!="":
         fout = open(outfile,"w")
     Reddict = dict()
@@ -465,6 +483,16 @@ def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=
     if outfile!="":
         fout.close()
     
+    tempDict = dict()
+    for rxn in Reddict.keys():
+      tempDict[rxn]=abs(Reddict[rxn])
+    
+    #sort by values
+    import operator
+    sorted_by_value = sorted(tempDict.items(), key= lambda x:x[1],reverse=True)
+    
+    
+    
     Reddict2 = dict()
     Reddict2["Others-pos"]=0
     Reddict2["Others-neg"]=0
@@ -472,7 +500,8 @@ def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=
     pos_base=0
     neg_base=0
     i=0
-    for rxn in Reddict.keys():
+    for TEMP in sorted_by_value:
+        rxn = TEMP[0]
         if Reddict[rxn]>0:
             if Reddict[rxn] < total*0.05:
                 if percentage:
@@ -516,7 +545,10 @@ def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=
         plt.rcParams['axes.linewidth']=2 # makes axes line thicker
         plt.figure(figsize=(3,4))
         for rxn in Reddict2.keys():
-            plt.bar(1,Reddict2[rxn],width=0.1,bottom=baseline[rxn],label=rxn)
+            if colourDict.keys().__contains__(rxn):
+              plt.bar(1,Reddict2[rxn],width=0.1,bottom=baseline[rxn],label=rxn,color=colourDict[rxn])
+            else:
+              plt.bar(1,Reddict2[rxn],width=0.1,bottom=baseline[rxn],label=rxn)
         plt.xlim(0.8,1.2)
         if percentage:
             plt.ylabel("NAD(P)H produced/consumed (%)")
