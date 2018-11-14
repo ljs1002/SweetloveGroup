@@ -563,3 +563,39 @@ def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=
         plt.savefig(save_plot_to, bbox_extra_artists=(lgd,), bbox_inches='tight')
         
 
+
+
+#####################################################################
+# This function converts flux to grams based on the formula of prod-#
+#-ucts or reactants(if there are no products or if the user chooses #
+# to consider only the reactants)				    #
+# inputs: 1) a cobra model, 2) a reaction ID, 3) flux value (option-#
+#-al) and 4) a boolean trigger (optional): False to use products for#
+# calculation and True to use the reactants instead 		    #
+#####################################################################
+def convertFlux2Grams(model,rxnID,flux=0,noProd=True):
+    rxn = model.reactions.get_by_id(rxnID)
+    mass = 0
+    if flux == 0:
+        flux = rxn.flux
+    if len(rxn.products)!= 0 and not noProd:
+        for met in rxn.products:
+            print(met.id)
+            print(met.formula)
+            if met.formula == "" or met.formula == "NA":
+                noProd = True
+            if not noProd:
+                mass = mass + (met.formula_weight*rxn.metabolites.get(met))
+    if noProd or len(rxn.products)==0:
+        mass = 0
+        for met in rxn.reactants:
+            #print(met.id)
+            #print(met.formula)
+            if met.formula == "" or met.formula == "NA":
+                print("PROBLEM: no formula for "+met.id)
+                return
+            else:
+                mass = mass + abs(met.formula_weight*rxn.metabolites.get(met))
+    mass = mass*flux
+    return mass
+
