@@ -573,7 +573,7 @@ def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=
 #-al) and 4) a boolean trigger (optional): False to use products for#
 # calculation and True to use the reactants instead 		    #
 #####################################################################
-def convertFlux2Grams(model,rxnID,flux=0,noProd=True):
+def convertFluxMol2Grams(model,rxnID,flux=0,noProd=True):
     rxn = model.reactions.get_by_id(rxnID)
     mass = 0
     if flux == 0:
