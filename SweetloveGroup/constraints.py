@@ -31,9 +31,9 @@ def setCCE(C3_model,CCE = 0.5,tag = "dielTransfer"):
 #args: 1) a cobra model, 2) a python list of reactions to leave out from constrai-
 #-nt, 3) the float value that sum of fluxes must be constrained to & 4) value obj-
 #-ective function needs to be constraint to (provide "" to avoid constraining obj-
-#ective function)
+#ective function) 5) Flux weightings
 #output: a cobra model with sum of fluxes constrained to 
-def constrainSumOfFluxes(cobra_model, rxn2avoid,SFvalue,objvalue):
+def constrainSumOfFluxes(cobra_model, rxn2avoid,SFvalue,objvalue,weightings):
   from cobra.core import Metabolite, Reaction
   
   temp=cobra_model.copy()
@@ -41,9 +41,9 @@ def constrainSumOfFluxes(cobra_model, rxn2avoid,SFvalue,objvalue):
   for rxn in cobra_model.reactions:
     if not rxn2avoid.__contains__(rxn.id):
       if rxn.id.__contains__("reverse"):
-	temp.reactions.get_by_id(rxn.id).add_metabolites({SFMet:-1})
+	temp.reactions.get_by_id(rxn.id).add_metabolites({SFMet:-1*weightings[rxn.id.replace("_reverse","")]})
       else:
-	temp.reactions.get_by_id(rxn.id).add_metabolites({SFMet:1})
+	temp.reactions.get_by_id(rxn.id).add_metabolites({SFMet:1*weightings[rxn.id.replace("_reverse","")]})
   SFRxn = Reaction("SFRxn",name="Sum of fluxes pseudoreaction")
   SFRxn.add_metabolites({SFMet:-1})
   SFRxn.lower_bound=SFvalue

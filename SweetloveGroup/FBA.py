@@ -152,7 +152,7 @@ def add_pfba_Weighted(model, weightings, objective=None, fraction_of_optimum=1.0
                 found=True
                 break
         if not found:
-            print("Weightings for reaction "+rxn+" not found, so assuming weighting = 1")
+            print("Weightings for reaction "+w+" not found, so assuming weighting = 1")
             tempDict[v] = 1
     model.objective.set_linear_coefficients(tempDict)
 
