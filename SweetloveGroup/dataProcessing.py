@@ -7,36 +7,38 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
   import pandas as pd
   import math
   import numpy as np
-  
+
   conc=list()
+  conc_max = list()
+  conc_min = list()
   rate_max=list()
   rate_min=list()
-    
+
   #import data
   df = pd.read_csv(datafile,sep="\t")
   num2rem = int(0.025*Nsampling)
-  
+
   x_values = list()
   y_values = list()
-  
-  
+
+
   for i in range(0,len(df)):
     if not df[met][i]== 0:
       x_values.append(df["DPA"][i])
       y_values.append(df[met][i])
-  
-  
+
+
   log_y_values = list()
   for i in y_values:
     log_y_values.append(math.log(i))
-  
-  
-  
+
+
+
   x2 = np.arange(start,stop+0.1,0.1)
   y2 = np.poly1d(np.polyfit(x_values,log_y_values,degree))
-  
+
   ys = dict()
-  
+
   for i in range(0,Nsampling):
     ind = np.random.choice(range(0,len(x_values)),size=int(len(x_values)*Ssampling),replace=False)
     #print ind
@@ -46,8 +48,8 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
       x.append(x_values[j])
       y.append(log_y_values[j])
     ys[i]=np.poly1d(np.polyfit(x,y,degree))
-  
-  
+
+
   maxys = list()
   max95s = list()
   minys = list()
@@ -55,7 +57,7 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
   temp=dict()
   for i in ys.keys():
     temp[i]=ys[i](x2)
-  
+
   yi = dict()
   for j in range(0,len(x2)):
     templist=list()
@@ -67,40 +69,42 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
     max95s.append(max(temp2list))
     minys.append(min(templist))
     min95s.append(min(temp2list))
-  
-  
-  
-  
+
+
+
+
   y3 = list()
   for i in y2(x2):
     y3.append(math.exp(i))
-  
+
   maxy1 = list()
   for i in maxys:
     maxy1.append(math.exp(i))
-  
-  
+
+
   miny1 = list()
   for i in minys:
     miny1.append(math.exp(i))
-  
+
   maxy95_1 = list()
   for i in max95s:
     maxy95_1.append(math.exp(i))
-  
-  
+
+
   miny95_1 = list()
   for i in min95s:
     miny95_1.append(math.exp(i))
-  
+
   #print y3
   #print "----"
   #print x2
-  
+
   for i in DPA:
     #print i
     conc.append(y3[int((i-min(x_values))*10)])
-  
+    conc_max.append(maxy95_1[int((i-min(x_values))*10)])
+    conc_min.append(miny95_1[int((i-min(x_values))*10)])
+
   if show_plots:
     import matplotlib.pyplot as plt
     plt.rcParams.update({'font.size': 20}) #sets a global fontsize
@@ -110,8 +114,8 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
     plt.rcParams['ytick.major.width'] = 1
     plt.rcParams['axes.linewidth']=3 # makes axes line thicker
     plt.figure(figsize=(5,5))
-    
-    
+
+
     ax = plt.subplot()
     ax.plot(x_values,y_values,".",label="raw data")
     ax.plot(x2,y3,"g-",label="fitted curve")
@@ -121,16 +125,16 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
     plt.ylabel("Concentration (micromol/fruit)")
     plt.legend(bbox_to_anchor=(2, 1),fontsize=15)
     plt.show()
-  
+
   ##############################derivatives#####################
-  
+
   y2_deriv = y2.deriv()
-  
-  
+
+
   ys_deriv = dict()
   for i in ys.keys():
     ys_deriv[i] = ys[i].deriv()
-  
+
   maxys_deriv = list()
   maxy95_deriv = list()
   minys_deriv = list()
@@ -141,8 +145,8 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
     for j in range(0,len(x2)):
       templist.append(y3[j]*ys_deriv[i](x2[j]))
     temp[i]=templist
-  
-  
+
+
   yi_deriv = dict()
   for j in range(0,len(x2)):
     templist=list()
@@ -154,14 +158,14 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
     maxy95_deriv.append(max(temp2list))
     minys_deriv.append(min(templist))
     miny95_deriv.append(min(temp2list))
-    
-  
-  
-  
+
+
+
+
   y4 = list()
   for i in range(0,len(x2)):
     y4.append(y3[i]*y2_deriv(x2)[i])
-  
+
   rate_max = list()
   rate_min = list()
   if not len(DPA)==0:
@@ -170,8 +174,8 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
       rate_max.append(maxy95_deriv[int((i-min(x_values))*10)])
       rate_min.append(miny95_deriv[int((i-min(x_values))*10)])
       j=j+1
-  
-  
+
+
   if show_plots:
     import matplotlib.pyplot as plt
     plt.rcParams.update({'font.size': 20}) #sets a global fontsize
@@ -181,8 +185,8 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
     plt.rcParams['ytick.major.width'] = 1
     plt.rcParams['axes.linewidth']=3 # makes axes line thicker
     plt.figure(figsize=(5,5))
-    
-    
+
+
     ax = plt.subplot()
     ax.plot(x2,y4,"g-",label="derivitative of fitted curve")
     ax.plot(x2,maxys_deriv,"r-",label="derivative of fitted curve with max.y")
@@ -194,11 +198,11 @@ def generateBoundsFromBiomass(datafile="/home/sanu/ColobieDataRaw.csv",met="sucr
     plt.ylabel("Flux (micromol/fruit/day)")
     plt.legend(bbox_to_anchor=(2.55, 1),fontsize=15)
     plt.show()
-  
-  return (conc,rate_max,rate_min)
+
+  return (conc,conc_max,conc_min,rate_max,rate_min)
 
 
-  
+
 ###################################################################
 #This function removes gene and protein associations from a given #
 #sbml file.                                                       #
@@ -222,7 +226,7 @@ def removeGeneProteinAssociations(orignal_sbml_file,final_sbml_file):
         reset_ignore_gene = True
       elif Type == "protein":
         reset_ignore_protein=True
-    if not ignore: 
+    if not ignore:
       #print line
       fout.write(line)
     if reset_ignore_gene:
@@ -234,9 +238,9 @@ def removeGeneProteinAssociations(orignal_sbml_file,final_sbml_file):
       fout.write("      <html:p>PROTEIN_ASSOCIATION: </html:p>\n")
       ignore=False
       Type=""
-      reset_ignore_protein = False  
+      reset_ignore_protein = False
   fout.close()
-  
+
 ######################################################################
 # This function writes fluxes from a solution object into a CSV file #
 # input aurguments: a solution object, full path of file             #

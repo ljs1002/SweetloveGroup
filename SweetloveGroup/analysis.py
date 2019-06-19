@@ -1,7 +1,7 @@
 
 
 #Function to identify net synthesis/consumption of metabolites in a given set of
-#reactions 
+#reactions
 #args: 1) a solved cobra model 2) a list of reactions from which net metabolite s-
 #-toichiometry should be calculated
 #output: a dictionay file with metabolite ids as key and net soichiometry as value
@@ -22,7 +22,7 @@ def netMetaboliteStoich(cobra_model,rxnlist):
 
 
 #Function to print out all reactions generating/consuming a metabolite of inter-
-#est 
+#est
 #args: 1) a solved cobra model 2) metabolite ID 3) ID of alternate charged state
 #(use "" if none) 4) output file (use "" if no output file is required)
 #output: none
@@ -45,8 +45,8 @@ def writeMetabSummary(cobra_model, met, Amet, outfile):
       fout.write(rxn.id+"\t"+rxn.reaction+"\t"+str(rxn.x*(sto+sto1))+"\n")
   if not outfile=="":
     fout.close()
-      
-      
+
+
 #Function to calculate night time carbon conversion efficiency in diel model
 #args: 1) a solved cobra model 2) day-night accumulation tag (default = "diel-
 #-Transfer") 3) reaction ID for night time output (default = phloem_output_tx-
@@ -54,14 +54,14 @@ def writeMetabSummary(cobra_model, met, Amet, outfile):
 #output: carbon conversion efficiency
 def predictCCE(C3_model,accumulation_tag="dielTransfer",output="Phloem_output_tx2",CO2rxn = "CO2_tx2"):
   import re
-  
+
   for met in C3_model.metabolites:
     if not met.formula:
       met.formula=""
-  
+
   Cin = 0
   Cout = 0
-  
+
   for rxn in C3_model.reactions.query(accumulation_tag):
     if round(rxn.x,5)>0:
       for met in rxn.products:
@@ -70,7 +70,7 @@ def predictCCE(C3_model,accumulation_tag="dielTransfer",output="Phloem_output_tx
           #print str(Cin)+"---"+met.id
           #print str(rxn.x)+"\t"+str(rxn.metabolites.get(met))+"\t"+str(int(re.split(r"[C,H]",met.formula)[1]))
           Cin = Cin + (rxn.x * rxn.metabolites.get(met) * int(re.split(r"[C,H]",met.formula)[1]))
-  
+
   for rxn in C3_model.reactions.query(accumulation_tag):
     if round(rxn.x,5)<0:
       for met in rxn.reactants:
@@ -78,16 +78,16 @@ def predictCCE(C3_model,accumulation_tag="dielTransfer",output="Phloem_output_tx
           #print str(Cout)+"---"+met.id
           #print str(rxn.x)+"\t"+str(rxn.metabolites.get(met))+"\t"+str(int(re.split(r"[C,H]",met.formula)[1]))
           Cout = Cout + (rxn.x * rxn.metabolites.get(met) * int(re.split(r"[C,H]",met.formula)[1]))
-  
+
   rxn = C3_model.reactions.get_by_id(output)
   for met in rxn.reactants:
     if met.formula.__contains__("C"):
       #print str(Cout)+"---"+met.id
       #print str(rxn.x)+"\t"+str(-1 * rxn.metabolites.get(met))+"\t"+str(int(re.split(r"[C,H]",met.formula)[1]))
       Cout = Cout + (rxn.x * -1 * rxn.metabolites.get(met) * int(re.split(r"[C,H]",met.formula)[1]))
-  
+
   Cout = Cout + (-1*C3_model.reactions.get_by_id(CO2rxn).x)
-  
+
   if(not round(Cin,5) == round(Cout,5)):
     print "Error, Cin = "+str(Cin)+" and Cout = "+str(Cout)
     return 0
@@ -107,9 +107,9 @@ def predictCCE(C3_model,accumulation_tag="dielTransfer",output="Phloem_output_tx
 #                                                                  #
 ####################################################################
 
-def generateFluxMap(cobra_model, outfile,phases = 2):
+def generateFluxMap(cobra_model,solution, outfile,phases = 2):
     import cobra
-    solution = cobra.flux_analysis.parsimonious.optimize_minimal_flux(cobra_model)
+    #solution = cobra.flux_analysis.parsimonious.optimize_minimal_flux(cobra_model)
     #solution = cobra.flux_analysis.parsimonious.pfba(cobra_model)          #If the previous line returns error comment it out and uncomment this line instead
 
     #open output file for writing
@@ -153,16 +153,16 @@ def generateFluxMap(cobra_model, outfile,phases = 2):
             #add the reaction we are about to process to the reactions processed list
             for i in range(1,phases+1):
                 rxnSet.add(RXN+str(i))
-                if(round(float(cobra_model.reactions.get_by_id(RXN+str(i)).x)*10000) == 0):
+                if(round(float(solution.x_dict.get(RXN+str(i)))*10000000) == 0):
                     tempvalue.append(0)
                     temp1.append("none")
                     temp2.append("none")
-                elif(float(cobra_model.reactions.get_by_id(RXN+str(i)).x)*10000 > 0):
-                    tempvalue.append(cobra_model.reactions.get_by_id(RXN+str(i)).x*1000)
+                elif(float(solution.x_dict.get(RXN+str(i)))*10000 > 0):
+                    tempvalue.append(solution.x_dict.get(RXN+str(i)))
                     temp1.append("produced")
                     temp2.append("consumed")
-                elif(float(cobra_model.reactions.get_by_id(RXN+str(i)).x)*10000 < 0):
-                    tempvalue.append(cobra_model.reactions.get_by_id(RXN+str(i)).x*1000)
+                elif(float(solution.x_dict.get(RXN+str(i)))*10000 < 0):
+                    tempvalue.append(solution.x_dict.get(RXN+str(i)))
                     temp1.append("consumed")
                     temp2.append("produced")
             values[RXN] = tempvalue
@@ -203,7 +203,7 @@ def generateFluxMap(cobra_model, outfile,phases = 2):
         else:
             #add the reaction we are about to process to the reactions processed list
             rxnSet.add(RXN)
-            if(round(float(solution.x_dict.get(rxn.id))*10000) == 0):
+            if(round(float(solution.x_dict.get(rxn.id))*10000000) == 0):
                 value = 0;
                 status1= "none";
                 status0= "none";
@@ -239,18 +239,18 @@ def generateFluxMap(cobra_model, outfile,phases = 2):
 # user defined value                               #
 ####################################################
 def estimateVcFromNetCO2(model,netCO2uptake,Vc_ID="RIBULOSE_BISPHOSPHATE_CARBOXYLASE_RXN_p1",CO2in_ID="CO2_tx1",verbose=False):
-    
+
     from cobra import flux_analysis
     # Initally constraint Vc flux to net CO2 uptake rate
     model.reactions.get_by_id(Vc_ID).lower_bound = netCO2uptake
     model.reactions.get_by_id(Vc_ID).upper_bound = netCO2uptake
-    
+
     #perform pFBA
     flux_analysis.parsimonious.optimize_minimal_flux(model)
-    
+
     #set loop counter
     i=0
-    
+
     #Use a while loop to increase Vc flux until net CO2 rate is similar to given value (or loop counter hits 10)
     while((netCO2uptake - model.reactions.get_by_id(CO2in_ID).x)/netCO2uptake > 0.001 and i<10):
         i=i+1
@@ -266,7 +266,7 @@ def estimateVcFromNetCO2(model,netCO2uptake,Vc_ID="RIBULOSE_BISPHOSPHATE_CARBOXY
             print("net CO2 uptake ="+str(model.reactions.get_by_id(CO2in_ID).x))
             print("Target CO2 uptake ="+str(netCO2uptake))
     return prev
-  
+
 
 ######################################################
 # This function estimates biomass/phloem output flux #
@@ -274,7 +274,7 @@ def estimateVcFromNetCO2(model,netCO2uptake,Vc_ID="RIBULOSE_BISPHOSPHATE_CARBOXY
 # user defined value                                 #
 ####################################################
 def estimateOutputFromNetCO2(model,netCO2uptake,Output_ID="diel_biomass",Vc_ID="RIBULOSE_BISPHOSPHATE_CARBOXYLASE_RXN_p1",CO2in_ID="CO2_tx1",verbose=False):
-    
+
     from cobra import flux_analysis
     # Initally constraint Vc flux to net CO2 uptake rate
     print model.reactions.get_by_id("Photon_tx1").upper_bound
@@ -284,14 +284,14 @@ def estimateOutputFromNetCO2(model,netCO2uptake,Output_ID="diel_biomass",Vc_ID="
     print model.reactions.get_by_id(Vc_ID).upper_bound
     #perform pFBA
     flux_analysis.parsimonious.pfba(model)
-    
+
     #unconstrain Vc
     model.reactions.get_by_id(Vc_ID).lower_bound = 0
     model.reactions.get_by_id(Vc_ID).upper_bound = 1000
-    
+
     #set loop counter
     i=0
-    
+
     #Use a while loop to increase Vc flux until net CO2 rate is similar to given value (or loop counter hits 10)
     while((netCO2uptake - model.reactions.get_by_id(CO2in_ID).x)/netCO2uptake > 0.001):# and i<10):
         i=i+1
@@ -300,7 +300,7 @@ def estimateOutputFromNetCO2(model,netCO2uptake,Output_ID="diel_biomass",Vc_ID="
         now = prev + (prev*((netCO2uptake - model.reactions.get_by_id(CO2in_ID).x)/netCO2uptake))
         model.reactions.get_by_id(Output_ID).lower_bound = now
         model.reactions.get_by_id(Output_ID).upper_bound = now
-        
+
         flux_analysis.parsimonious.pfba(model)
         if verbose:
             print("----"+str(i)+"----")
@@ -312,7 +312,7 @@ def estimateOutputFromNetCO2(model,netCO2uptake,Output_ID="diel_biomass",Vc_ID="
     return prev
 
 
-  
+
 #####################################################################
 # This function prints information on CO2 generating fluxes and can #
 # be used to study dark respiration                                 #
@@ -337,7 +337,7 @@ def printDarkRespirationFluxes(model,rxn2avoid=["CO2_tx1","CO2_ec1","CO2_mc1","C
               tot=tot+abs(sol.x_dict.get(rxn.id))
               if tot==0:
                 continue
-            
+
             print rxn.id+"\t"+rxn.reaction,
             for sol in custom_solutions:
               print "\t"+str(rxn.metabolites.get(met)*sol.x_dict.get(rxn.id)),
@@ -362,7 +362,7 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,
     met=model.metabolites.get_by_id("ATP_"+p+day_or_night_tag)
     met1=model.metabolites.get_by_id("aATP_"+p+day_or_night_tag)
     for rxn in met.reactions:
-      if rxn.id.__contains__("ATP_AMP_mc") or rxn.id.__contains__("ATP_ADP_mc") or rxn.id.__contains__("ATP_pc") or rxn.id.__contains__("AMP_ATP_xc") or rxn.id.__contains__("ATP_ADP_Pi_pc"): 
+      if rxn.id.__contains__("ATP_AMP_mc") or rxn.id.__contains__("ATP_ADP_mc") or rxn.id.__contains__("ATP_pc") or rxn.id.__contains__("AMP_ATP_xc") or rxn.id.__contains__("ATP_ADP_Pi_pc"):
         continue
       sto=rxn.metabolites.get(met)
       sto1=rxn.metabolites.get(met1)
@@ -373,15 +373,15 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,
         total = total + (solution.get(rxn.id)*(sto+sto1))
   if outfile!="":
     fout.close()
-  
+
   tempDict = dict()
   for rxn in ATPdict.keys():
     tempDict[rxn]=abs(ATPdict[rxn])
-  
+
   #sort ATPdict by values
   import operator
   sorted_by_value = sorted(tempDict.items(), key= lambda x:x[1],reverse=True)
-    
+
   ATPdict2 = dict()
   ATPdict2["Others-pos"]=0
   ATPdict2["Others-neg"]=0
@@ -423,7 +423,7 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,
     baseline[rxn]=base
   baseline["Others-pos"]=pos_base
   baseline["Others-neg"]=neg_base
-  
+
   if show_plot:
     import matplotlib.pyplot as plt
     plt.rcParams.update({'font.size': 10}) #sets a global fontsize
@@ -450,7 +450,7 @@ def generateATPbudget(model,solution,outfile="",show_plot=True,percentage=False,
     plt.axhline(0,linestyle="--",color="black")
     plt.tight_layout
     plt.savefig(save_plot_to, bbox_extra_artists=(lgd,), bbox_inches='tight')
- 
+
 
 #####################################################################
 # This function generates ATP budgets for a given flux distribution #
@@ -482,17 +482,17 @@ def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=
                     total = total + (solution.get(rxn.id)*(sto+sto1))
     if outfile!="":
         fout.close()
-    
+
     tempDict = dict()
     for rxn in Reddict.keys():
       tempDict[rxn]=abs(Reddict[rxn])
-    
+
     #sort by values
     import operator
     sorted_by_value = sorted(tempDict.items(), key= lambda x:x[1],reverse=True)
-    
-    
-    
+
+
+
     Reddict2 = dict()
     Reddict2["Others-pos"]=0
     Reddict2["Others-neg"]=0
@@ -534,7 +534,7 @@ def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=
         baseline[rxn]=base
     baseline["Others-pos"]=pos_base
     baseline["Others-neg"]=neg_base
-    
+
     if show_plot:
         import matplotlib.pyplot as plt
         plt.rcParams.update({'font.size': 10}) #sets a global fontsize
@@ -561,7 +561,7 @@ def generateNADHNADPHbudget(model,solution,outfile="",show_plot=True,percentage=
         plt.axhline(0,linestyle="--",color="black")
         plt.tight_layout
         plt.savefig(save_plot_to, bbox_extra_artists=(lgd,), bbox_inches='tight')
-        
+
 
 
 
@@ -598,4 +598,3 @@ def convertFluxMol2Grams(model,rxnID,flux=0,noProd=True):
                 mass = mass + abs(met.formula_weight*rxn.metabolites.get(met))
     mass = mass*flux
     return mass
-
